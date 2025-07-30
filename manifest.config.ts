@@ -18,10 +18,10 @@ export default defineManifest({
       48: 'public/icon48.png',
       128: 'public/icon128.png'
     },
-    default_popup: 'src/popup/index.html',
+    // default_popup: 'src/popup/index.html',
   },
   content_scripts: [{
     js: ['src/content/main.tsx'],
-    matches: ['https://*/*'],
+    matches: ["https://leetcode.com/problems/*"],
   }],
 })

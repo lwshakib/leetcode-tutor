@@ -1,5 +1,6 @@
 {
   "name": "leetcode-tutor",
+  "description":"A powerful Chrome extension that provides AI-powered tutoring assistance while solving LeetCode problems. Get instant help, explanations, and step-by-step guidance directly on LeetCode's problem pages.",
   "type": "module",
   "version": "1.0.0",
   "private": true,

@@ -2,7 +2,7 @@ import { SYSTEM_PROMPT } from "@/constants/prompt";
 import { GoogleGenAI } from "@google/genai";
 import { BotMessageSquare, Send, User, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
+import MarkdownRenderer from "./MarkdownRenderer";
 interface Message {
   role: string;
   content: string;
@@ -155,7 +155,7 @@ export default function ChatBox({ isOpen, onClose, context }: ChatBoxProps) {
                   : "bg-white/10 text-white rounded-bl-md border border-white/15"
               }`}
             >
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+              <MarkdownRenderer content={message.content} />
             </div>
             {message.role === "user" && (
               <span className="flex items-end ml-2">

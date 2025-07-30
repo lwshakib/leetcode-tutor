@@ -1,7 +1,8 @@
+import { SYSTEM_PROMPT } from "@/constants/prompt";
+import { GoogleGenAI } from "@google/genai";
 import { BotMessageSquare, Send, User, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-
 interface Message {
   role: string;
   content: string;
@@ -12,6 +13,10 @@ interface ChatBoxProps {
   onClose: () => void;
   context: string;
 }
+
+const ai = new GoogleGenAI({
+  apiKey: import.meta.env.VITE_GOOGLE_API_KEY,
+});
 
 export default function ChatBox({ isOpen, onClose, context }: ChatBoxProps) {
   const [text, setText] = useState("");
@@ -66,10 +71,44 @@ export default function ChatBox({ isOpen, onClose, context }: ChatBoxProps) {
 
     // For now, just echo back the user's message as a mock response
     // In a real implementation, this would be replaced with AI logic
-    const mockResponse = `I received your message: "${text}"\n\nContext: ${context}\nLanguage: ${programmingLanguage}\nCode: ${extractedCode}`;
+    const promptTemplate = SYSTEM_PROMPT.replace(
+      /{{problem_statement}}/gi,
+      context
+    )
+      .replace(/{{programming_language}}/g, programmingLanguage)
+      .replace(/{{user_code}}/g, extractedCode)
+      .replace(
+        /{{user_history}}/g,
+        messages.map((message) => message.content).join("\n")
+      );
 
-    const assistantMessage = { role: "assistant", content: mockResponse };
+    const response = await ai.models.generateContentStream({
+      model: "gemini-2.5-flash",
+      contents: text,
+      config: {
+        systemInstruction: promptTemplate,
+        temperature: 0.7,
+        topP: 0.95,
+        topK: 40,
+        responseMimeType: "text/plain",
+      },
+    });
+
+    // Add initial assistant message
+    const assistantMessage = { role: "assistant", content: "" };
     setMessages((prev) => [...prev, assistantMessage]);
+
+    // Accumulate chunks into the last message
+    for await (const chunk of response) {
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage.role === "assistant") {
+          lastMessage.content += chunk.text || "";
+        }
+        return newMessages;
+      });
+    }
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
